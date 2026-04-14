@@ -18,7 +18,7 @@ function App() {
   return (
     <AuthProvider>
       <CitiesProvider>
-        <BrowserRouter basename="/world.github.io">
+        <BrowserRouter basename="/world.github.io/logo.png">
           <Routes>
             <Route index element={<HomePage />} />
             <Route path="product" element={<Product />} />
