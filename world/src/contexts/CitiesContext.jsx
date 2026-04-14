@@ -1,11 +1,4 @@
-import { circle } from "leaflet";
-import {
-  createContext,
-  useState,
-  useEffect,
-  useContext,
-  useReducer,
-} from "react";
+import { createContext, useEffect, useContext, useReducer } from "react";
 
 import { supabase } from "../services/SupaBase"; // Asegúrate de que la ruta y el nombre coincidan
 
@@ -106,9 +99,17 @@ function CitiesProvider({ children }) {
   async function createCity(newCity) {
     dispatch({ type: "loading" });
     try {
+      // Aplanamos el objeto: sacamos lat y lng de position
+      const { position, ...rest } = newCity;
+      const cityToInsert = {
+        ...rest,
+        lat: position.lat,
+        lng: position.lng,
+      };
+
       const { data, error } = await supabase
         .from("cities")
-        .insert([newCity])
+        .insert([cityToInsert]) // Enviamos el objeto con lat/lng planos
         .select();
 
       if (error) throw error;
