@@ -35,10 +35,7 @@ function Map() {
   useEffect(
     function () {
       if (geolocationPosition)
-        setMapPosition([
-          geolocationPosition.position__lat,
-          geolocationPosition.position__lng,
-        ]);
+        setMapPosition([geolocationPosition.lat, geolocationPosition.lng]);
     },
     [geolocationPosition],
   );
@@ -62,10 +59,7 @@ function Map() {
         />
         {cities.map((city) => (
           <Marker
-            position={[
-              city.position.position__latlat,
-              city.position.position__lng,
-            ]}
+            position={[city.position.lat, city.position.lng]}
             key={city.id}
           >
             <Popup>
@@ -90,10 +84,7 @@ function DelectClick() {
   const navigate = useNavigate();
 
   useMapEvent({
-    click: (e) =>
-      navigate(
-        `form?lat=${e.latlng.position__lat}&lng=${e.latlng.position__lng}`,
-      ),
+    click: (e) => navigate(`form?lat=${e.latlng.lat}&lng=${e.latlng.lng}`),
   });
 }
 export default Map;

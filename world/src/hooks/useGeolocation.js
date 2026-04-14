@@ -13,8 +13,8 @@ export function useGeolocation(defaultPosition = null) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setPosition({
-          position__lat: pos.coords.latitude,
-          position__lng: pos.coords.longitude,
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
         });
         setIsLoading(false);
       },

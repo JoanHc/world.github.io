@@ -24,7 +24,7 @@ function CityItem({ city }) {
         className={`${styles.cityItem} ${
           (id === currentCity, id ? styles["cityItem--active"] : "")
         }`}
-        to={`${id}?lat=${position.position__lat}&lng=${position.position__lng}`}
+        to={`${id}?lat=${position.lat}&lng=${position.lng}`}
       >
         <span className={styles.emoji}>{emoji}</span>
         <h3 className={styles.name}>{cityName}</h3>
