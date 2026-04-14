@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MapContainer,
   TileLayer,
@@ -6,13 +6,13 @@ import {
   Popup,
   useMap,
   useMapEvent,
-} from 'react-leaflet';
-import styles from './Map.module.css';
-import { useCities } from '../contexts/CitiesContext';
-import { useGeolocation } from '../hooks/useGeolocation';
-import { useEffect, useState } from 'react';
-import Button from './Button';
-import { useUrlPosition } from '../hooks/useUrlPosition';
+} from "react-leaflet";
+import styles from "./Map.module.css";
+import { useCities } from "../contexts/CitiesContext";
+import { useGeolocation } from "../hooks/useGeolocation";
+import { useEffect, useState } from "react";
+import Button from "./Button";
+import { useUrlPosition } from "../hooks/useUrlPosition";
 
 function Map() {
   const { cities } = useCities();
@@ -29,25 +29,25 @@ function Map() {
     function () {
       if (mapLat && mapLng) setMapPosition([mapLat, mapLng]);
     },
-    [mapLat, mapLng]
+    [mapLat, mapLng],
   );
 
   useEffect(
     function () {
       if (geolocationPosition)
-        setMapPosition([geolocationPosition.lat, geolocationPosition.lng]);
+        setMapPosition([
+          geolocationPosition.position__lat,
+          geolocationPosition.position__lng,
+        ]);
     },
-    [geolocationPosition]
+    [geolocationPosition],
   );
 
   return (
     <div className={styles.mapContainer}>
       {!geolocationPosition && (
-        <Button
-          type='position'
-          onClick={getPosition}
-        >
-          {isLoadingPosition ? 'Loading...' : 'Use your position'}
+        <Button type="position" onClick={getPosition}>
+          {isLoadingPosition ? "Loading..." : "Use your position"}
         </Button>
       )}
       <MapContainer
@@ -58,11 +58,14 @@ function Map() {
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url='https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
+          url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
         />
         {cities.map((city) => (
           <Marker
-            position={[city.position.lat, city.position.lng]}
+            position={[
+              city.position.position__latlat,
+              city.position.position__lng,
+            ]}
             key={city.id}
           >
             <Popup>
@@ -87,7 +90,10 @@ function DelectClick() {
   const navigate = useNavigate();
 
   useMapEvent({
-    click: (e) => navigate(`form?lat=${e.latlng.lat}&lng=${e.latlng.lng}`),
+    click: (e) =>
+      navigate(
+        `form?lat=${e.latlng.position__lat}&lng=${e.latlng.position__lng}`,
+      ),
   });
 }
 export default Map;
