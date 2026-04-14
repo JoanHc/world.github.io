@@ -1,13 +1,13 @@
-import { circle } from 'leaflet';
+import { circle } from "leaflet";
 import {
   createContext,
   useState,
   useEffect,
   useContext,
   useReducer,
-} from 'react';
+} from "react";
 
-const BASE_URL = 'http://localhost:9000';
+import { supabase } from "../services/SupaBase"; // Asegúrate de que la ruta y el nombre coincidan
 
 const CitiesContext = createContext();
 
@@ -15,21 +15,21 @@ const initialState = {
   cities: [],
   isLoading: false,
   currentCity: {},
-  error: '',
+  error: "",
 };
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'loading':
+    case "loading":
       return { ...state, isLoading: true };
 
-    case 'cities/loaded':
+    case "cities/loaded":
       return { ...state, isLoading: false, cities: action.payload };
 
-    case 'city/loaded':
+    case "city/loaded":
       return { ...state, isLoading: false, currentCity: action.payload };
 
-    case 'city/created':
+    case "city/created":
       return {
         ...state,
         isLoading: false,
@@ -37,7 +37,7 @@ function reducer(state, action) {
         currentCity: action.payload,
       };
 
-    case 'city/delete':
+    case "city/delete":
       return {
         ...state,
         isLoading: false,
@@ -45,7 +45,7 @@ function reducer(state, action) {
         currentCity: {},
       };
 
-    case 'rejected':
+    case "rejected":
       return {
         ...state,
         isLoading: false,
@@ -53,81 +53,86 @@ function reducer(state, action) {
       };
 
     default:
-      throw new Error('Unknown action type');
+      throw new Error("Unknown action type");
   }
 }
 
 function CitiesProvider({ children }) {
   const [{ cities, isLoading, currentCity, error }, dispatch] = useReducer(
     reducer,
-    initialState
+    initialState,
   );
 
+  // 1. Cargar ciudades desde Supabase
   useEffect(function () {
     async function fetchCities() {
-      dispatch({ type: 'loading' });
+      dispatch({ type: "loading" });
       try {
-        const res = await fetch(`${BASE_URL}/cities`);
-        const data = await res.json();
-        dispatch({ type: 'cities/loaded', payload: data });
-      } catch {
+        const { data, error } = await supabase.from("cities").select("*");
+        if (error) throw error;
+        dispatch({ type: "cities/loaded", payload: data });
+      } catch (err) {
         dispatch({
-          type: 'rejected',
-          payload: 'There was an error loading cities...',
+          type: "rejected",
+          payload: "There was an error loading cities...",
         });
       }
     }
     fetchCities();
   }, []);
 
+  // 2. Obtener una ciudad por ID
   async function getCity(id) {
-    if (Number(id) === currentCity.id) return;
-    dispatch({ type: 'loading' });
+    if (id === currentCity.id) return;
+    dispatch({ type: "loading" });
     try {
-      const res = await fetch(`${BASE_URL}/cities/${id}`);
-      const data = await res.json();
-      dispatch({ type: 'city/loaded', payload: data });
-    } catch {
+      const { data, error } = await supabase
+        .from("cities")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+      dispatch({ type: "city/loaded", payload: data });
+    } catch (err) {
       dispatch({
-        type: 'rejected',
-        payload: 'There was an error loading the city...',
+        type: "rejected",
+        payload: "There was an error loading the city...",
       });
     }
   }
+
+  // 3. Crear ciudad en Supabase
   async function createCity(newCity) {
-    dispatch({ type: 'loading' });
+    dispatch({ type: "loading" });
     try {
-      const res = await fetch(`${BASE_URL}/cities`, {
-        method: 'POST',
-        body: JSON.stringify(newCity),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const { data, error } = await supabase
+        .from("cities")
+        .insert([newCity])
+        .select();
 
-      const data = await res.json();
-
-      dispatch({ type: 'city/created', payload: data });
-    } catch {
+      if (error) throw error;
+      dispatch({ type: "city/created", payload: data[0] });
+    } catch (err) {
       dispatch({
-        type: 'rejected',
-        payload: 'There was an error creating the city...',
+        type: "rejected",
+        payload: "There was an error creating the city...",
       });
     }
   }
 
+  // 4. Borrar ciudad en Supabase
   async function deleteCity(id) {
-    dispatch({ type: 'loading' });
+    dispatch({ type: "loading" });
     try {
-      await fetch(`${BASE_URL}/cities/${id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase.from("cities").delete().eq("id", id);
 
-      dispatch({ type: 'city/deleted', payload: id });
-    } catch {
+      if (error) throw error;
+      dispatch({ type: "city/delete", payload: id });
+    } catch (err) {
       dispatch({
-        type: 'rejected',
-        payload: 'There was an error deleting the city...',
+        type: "rejected",
+        payload: "There was an error deleting the city...",
       });
     }
   }
@@ -148,10 +153,11 @@ function CitiesProvider({ children }) {
     </CitiesContext.Provider>
   );
 }
+
 function useCities() {
   const context = useContext(CitiesContext);
   if (context === undefined)
-    throw new Error('CitiesContext was used outside the CitiesProvider');
+    throw new Error("CitiesContext was used outside the CitiesProvider");
   return context;
 }
 
